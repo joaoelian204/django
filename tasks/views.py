@@ -1,13 +1,14 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
-from django.contrib.auth import login,logout, authenticate
 from django.db import IntegrityError
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
 from .forms import TaskForm
 from .models import Task
-from django.utils import timezone
-from django.contrib.auth.decorators import login_required
+
 
 def home(request):
     return render(request, "home.html")
@@ -40,12 +41,14 @@ def signup(request):
 @login_required
 def tasks(request):
     tasks = Task.objects.filter(user=request.user, datecompleted__isnull=True)
-    return render(request, 'tasks.html',{'tasks':tasks})
+    return render(request, 'tasks.html', {'tasks': tasks, 'tasks_type': 'Tarea pendiente'})
+
 
 @login_required
 def tasks_completed(request):
     tasks = Task.objects.filter(user=request.user, datecompleted__isnull=False).order_by('-datecompleted')
-    return render(request, 'tasks.html',{'tasks':tasks})
+    return render(request, 'tasks.html', {'tasks': tasks, 'tasks_type': 'Tarea completadas'})
+
 
 @login_required
 def create_task(request):
@@ -123,4 +126,3 @@ def signin(request):
         else:
             login(request, user)
             return redirect('tasks')
-    
